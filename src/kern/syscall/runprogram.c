@@ -44,6 +44,7 @@
 #include <vfs.h>
 #include <syscall.h>
 #include <test.h>
+#include <copyinout.h>
 
 /*
  * Load program "progname" and start running it in usermode.
@@ -52,7 +53,7 @@
  * Calls vfs_open on progname and thus may destroy it.
  */
 int
-runprogram(char *progname)
+runprogram(char *progname, int argc, char **argv)
 {
 	struct vnode *v;
 	vaddr_t entrypoint, stackptr;
@@ -94,9 +95,33 @@ runprogram(char *progname)
 		/* thread_exit destroys curthread->t_addrspace */
 		return result;
 	}
-
+	
+	//Create padding
+	userptr_t pass_args[argc]; //size of the array
+	int len = 0; //initial length
+	
+	for (int i =0; i < argc; i++){
+		len = strlen(argv[i]); //length of current argument
+		stackptr -= sizeof(char) * (len + 1); //adjust pointer to copy string
+		stackptr -= stackptr % 4; //normalize to fit with the space
+		
+		copyoutstr(argv[i], (userptr_t) stackptr, (len+1), NULL); //copy out
+		
+		pass_args[i] = (userptr_t) stackptr; //add it to be passed
+		kfree(argv[i]); // free memory
+	}
+	
+	//add NULL termination
+	pass_args[argc] = NULL:
+	
+	//adjust pointer to copy out with proper normalization on address
+	stackptr -= (argc + 1) * sizeof(userptr_t);
+	stackptr -= stackptr % 8;
+	
+	//copyout the stack
+	copyout(pass_args, (userptr_t) stackptr, (argc * sizeof(userptr_t)));
 	/* Warp to user mode. */
-	enter_new_process(0 /*argc*/, NULL /*userspace addr of argv*/,
+	enter_new_process(argc, (userptr_t) stackptr,
 			  stackptr, entrypoint);
 	
 	/* enter_new_process does not return. */
