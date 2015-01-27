@@ -56,6 +56,7 @@ struct pidinfo {
 	volatile bool pi_exited;	// true if thread has exited
 	int pi_exitstatus;		// status (only valid if exited)
 	struct cv *pi_cv;		// use to wait for thread exit
+	int pi_flag;			// flag the pid
 };
 
 
@@ -356,6 +357,22 @@ pid_exit(int status, bool dodetach)
 int
 pid_join(pid_t targetpid, int *status, int flags)
 {
+	//Acquire lock to check its status
+	lock_acquire(pidlock);
+	
+	//Create New Thread to join EDIT: not so sure this if right
+	*nt = pi_get(targetpid);
+	
+	//If any error below occurs, return a negative code
+	
+	//ESRCH Error Check,  No thread could be found
+	if (nt == NULL) {
+		lock_release(pidlock);
+		return -ESRCH;
+	}
+	
+	//EINVAL Error Check, The thread corresponding targetpid has been detached.
+	
 	(void)targetpid;
 	(void)status;
 	(void)flags;
