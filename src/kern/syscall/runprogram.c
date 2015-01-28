@@ -53,7 +53,7 @@
  * Calls vfs_open on progname and thus may destroy it.
  */
 int
-runprogram(char *progname, int argc, char **argv)
+runprogram(char *progname, unsigned int argc, char **argv)
 {
 	struct vnode *v;
 	vaddr_t entrypoint, stackptr;
@@ -98,24 +98,29 @@ runprogram(char *progname, int argc, char **argv)
 	
 	//Create padding
 	userptr_t pass_args[argc]; //size of the array
-	int len = 0; //initial length
+	int length = 0; //initial length
 	
-	for (int i =0; i < argc; i++){
-		len = strlen(argv[i]); //length of current argument
-		stackptr -= sizeof(char) * (len + 1); //adjust pointer to copy string
+	for (unsigned int i =0; i < argc; i++){
+		length = strlen(argv[i]); //length of current argument
+		stackptr -= sizeof(char) * (length + 1); //adjust pointer to copy string
 		stackptr -= stackptr % 4; //normalize to fit with the space
 		
-		copyoutstr(argv[i], (userptr_t) stackptr, (len+1), NULL); //copy out
+		if (copyoutstr(argv[i], (userptr_t) stackptr, length+1, NULL) != 0);{
+			panic("Arguments can not move");
+		} //copy out
 		
 		pass_args[i] = (userptr_t) stackptr; //add it to be passed
 		kfree(argv[i]); // free memory
 	}
 	
+	//free memory from the array
+	kfree(argv);
+	
 	//add NULL termination
 	pass_args[argc] = NULL:
 	
 	//adjust pointer to copy out with proper normalization on address
-	stackptr -= (argc + 1) * sizeof(userptr_t);
+	stackptr -= sizeof(userptr_t) * (argc + 1);
 	stackptr -= stackptr % 8;
 	
 	//copyout the stack

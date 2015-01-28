@@ -40,6 +40,7 @@
 #include <vfs.h>
 #include <syscall.h>
 #include <test.h>
+#include <pid.h> //to use pid actions
 
 /*
  * In-kernel menu and command dispatcher.
@@ -130,9 +131,9 @@ cmd_progthread(void *ptr, unsigned long nargs)
 
 	KASSERT(nargs >= 1);
 
-	if (nargs > 2) {
+	/*if (nargs > 2) {
 		kprintf("Warning: argument passing from menu not supported\n");
-	}
+	}*/
 
 	/* Hope we fit. */
 	KASSERT(strlen(args[0]) < sizeof(progname));
@@ -165,14 +166,15 @@ cmd_progthread(void *ptr, unsigned long nargs)
  * between that code and the menu input code.
  */
 
-
-
 static
 int
 common_prog(int nargs, char **args)
 {
 	int result;
 	char **args_copy;
+	pid_t val; //the value of the pid
+	bool last; //Is this really boolean in C, I don't remember
+	
 #if OPT_SYNCHPROBS
 	kprintf("Warning: this probably won't work with a "
 		"synchronization-problems kernel.\n");
@@ -191,12 +193,27 @@ common_prog(int nargs, char **args)
 	result = thread_fork(args_copy[0] /* thread name */,
 			cmd_progthread /* thread function */,
 			args_copy /* thread arg */, nargs /* thread arg */,
-			NULL);
+			&val);
+			
+	//check if the last character or argument is "&" meaning
+	// it has already been attached.
+	if (*args_copy[nargs - 1] == '&'){ //& is at the end of the address
+		last = true;
+		nargs--; //remove it to process results
+	}
+	
 	if (result) {
 		kprintf("thread_fork failed: %s\n", strerror(result));
 		/* demke: need to free copy of args if fork fails */
 		free_args(nargs, args_copy);
 		return result;
+	}
+	
+	if (last != true) {
+		pid_join(value, NULL, 0); //initial join
+	}
+	else{
+		pid_detach(value); //detach it
 	}
 
 	return 0;
