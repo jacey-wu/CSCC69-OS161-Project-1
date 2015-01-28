@@ -410,23 +410,47 @@ pid_join(pid_t targetpid, int *status, int flags)
 	lock_acquire(pidlock);
 	
 	//Create New Thread to join EDIT: not so sure this if right
-	*nt = pi_get(targetpid);
+	*newT = pi_get(targetpid);
 	
 	//If any error below occurs, return a negative code
 	
-	//ESRCH Error Check,  No thread could be found
-	if (nt == NULL) {
+	//ESRCH Error, No thread could be found
+	if (newT == NULL) {
 		lock_release(pidlock);
 		return -ESRCH;
 	}
 	
-	//EINVAL Error Check, The thread corresponding targetpid has been detached.
+	//EINVAL Error, 
 	
-	(void)targetpid;
-	(void)status;
-	(void)flags;
+	//The thread corresponding targetpid has been detached.
+	if (newT->pi_ppid == INVALID_PID){
+		lock_release(pidlock);
+		return -EINVAL;
+	}
 	
-	// Implement me.
-	KASSERT(false);
-	return EUNIMP;
+	//targetpid is INVALID_PID or BOOTUP_PID
+	if (targetpid == INVALID_PID || targetpid == BOOTUP_PID || targetpid < 0){
+		lock_release(pidlock);
+		return -EINVAL;
+	}
+	
+	//EDEADLK Error, The targetpid argument refers to the calling thread.
+	if (targetpid == curthread->t_pid){
+		lock_release(pidlock);
+		return -EDEADLK;
+	}
+	
+	//if the new thread hasn't exited, wait
+	if (newT->pi_exited == false){
+		cv_wait(newThread->pi_cv, pidlock); 
+	}
+	
+	//retrieve the exit status when the joined thread exits. 
+	int retrieve = newT->pi_exitstatus;
+	if (newT->pi_exited == true && status != NULL){
+		*status = retrieve; //Update the status
+	}
+	
+	lock_release(pidlock);
+	return targetpid;
 }
