@@ -42,6 +42,7 @@
 #include <current.h>
 #include <synch.h>
 #include <pid.h>
+#include <copyinout.h>  //helps with the pid functions
 
 /*
  * Structure for holding PID and return data for a thread.
@@ -315,11 +316,47 @@ pid_unalloc(pid_t theirpid)
 int
 pid_detach(pid_t childpid)
 {
-	(void)childpid;
+	lock_acquire(pidlock); //get the lock
 	
-	// Implement me
-	KASSERT(false);
-	return EUNIMP;
+	//create info to check errors when detaching
+	struct pidinfo *childT = pi_get(childpid);
+	
+	//ESRCH Error, No thread could be found 
+	//corresponding to that specified by child.
+	if (childT == NULL){
+		lock_release(pidlock); //release the lock
+		return ESRCH;
+	}
+	
+	//EINVAL Errors
+	
+	//child is already in the detached state.
+	if (childT->pi_ppid == INVALID_PID){
+		lock_release(pidlock); //release the lock
+		return EINVAL;
+	}
+
+	//caller is not the parent of child.
+	if (childT->pi_ppid != curthread->t_pid){
+		lock_release(pidlock); //release the lock
+		return EINVAL;
+	}
+
+	//child is INVALID_PID or BOOTUP_PID.
+	if (childpid == INVALID_PID || childpid == BOOTUP_PID){
+		lock_release(pidlock); //release the lock
+		return EINVAL;
+	}
+	//Destroy everything with child if gone, otherwise detach
+	if (childT->pi_exited == true){
+		pi_drop(childpid);
+	}
+	else{
+		childT->pi_ppid = INVALID_PID;
+	}
+	
+	lock_release(pidlock);
+	return 0; //success
 }
 
 /*
@@ -338,9 +375,21 @@ pid_exit(int status, bool dodetach)
 	
 	(void)dodetach; /* for compiler - delete when dodetach has real use */
 
-	// Implement me. Existing code simply sets the exit status.
 	lock_acquire(pidlock);
+	
+	// Implement me. Existing code simply sets the exit status.
+	my_pi->pi_exitstatus = status;
+	my_pi->pi_exited = true;
 
+	//wakes any thread waiting for the curthread to exit.
+	/* how to even do this? we could broadcast? like in networks*/
+	
+	//frees the PID and exit status if the curthread has been detached.
+	/*
+		for loop over all children
+		get their id to be checked
+		if for dodetach goes here
+		*/
 	my_pi = pi_get(curthread->t_pid);
 	KASSERT(my_pi != NULL);
 	my_pi->pi_exitstatus = status;
