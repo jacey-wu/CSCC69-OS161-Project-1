@@ -576,6 +576,10 @@ thread_fork(const char *name,
 	if (ret != NULL) {
 		*ret = newthread->t_pid;
 	}
+	else {
+		// detach thread.
+		pid_detach(newthread->t_pid);
+	}
 
 	return 0;
 }
@@ -831,7 +835,18 @@ void
 thread_exit(int exitcode)
 {
 	struct thread *cur;
-        (void)exitcode;  // suppress warning until code gets written
+	
+	//initialize dodetach
+	bool dodetach;
+	
+	//Check which process it is running in
+	// If NULL -> Kernel -> false
+	// else -> User -> true
+	if(cur->t_addrspace != NULL){
+		dodetach = true;
+	}
+	//call pid_exit
+	pid_exit(exitcode, dodetach);
 
 	cur = curthread;
 

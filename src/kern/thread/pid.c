@@ -373,27 +373,36 @@ pid_exit(int status, bool dodetach)
 {
 	struct pidinfo *my_pi;
 	
-	(void)dodetach; /* for compiler - delete when dodetach has real use */
+	//(void)dodetach; /* for compiler - delete when dodetach has real use */
 
 	lock_acquire(pidlock);
 	
 	// Implement me. Existing code simply sets the exit status.
-	my_pi->pi_exitstatus = status;
-	my_pi->pi_exited = true;
-
-	//wakes any thread waiting for the curthread to exit.
-	/* how to even do this? we could broadcast? like in networks*/
 	
-	//frees the PID and exit status if the curthread has been detached.
-	/*
-		for loop over all children
-		get their id to be checked
-		if for dodetach goes here
-		*/
 	my_pi = pi_get(curthread->t_pid);
 	KASSERT(my_pi != NULL);
 	my_pi->pi_exitstatus = status;
-
+	my_pi->pi_exited = true;
+	
+	//Iterate through all PIDs
+	for(int i = PID_MIN; i <= PID_MAX; i++){
+		struct pidinfo *child = pi_get((pid_t)index); //stats of current child
+		//if child id matches parent and not empty
+		if ((child->pi_ppid == my_pi->pi_pid) && (child != NULL)){
+			if (dodetach){ // kind of like EINVAL argument
+				child->pi_ppid = INVALID_PID;
+			}
+			else {
+				child->pi_ppid = BOOTUP_PID;
+			}
+		}
+	}
+	
+	//if it Invalid, drop it in the current thread
+	if (my_pi->pi_ppid == INVALID_PID){
+		pi_drop(curthread->t_pid);
+	}
+	
 	lock_release(pidlock);
 }
 
