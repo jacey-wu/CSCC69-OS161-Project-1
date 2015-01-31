@@ -419,7 +419,7 @@ pid_join(pid_t targetpid, int *status, int flags)
 	lock_acquire(pidlock);
 	
 	//Create New Thread to join EDIT: not so sure this if right
-	*newT = pi_get(targetpid);
+	struct pidinfo *newT = pi_get(targetpid);
 	
 	//If any error below occurs, return a negative code
 	

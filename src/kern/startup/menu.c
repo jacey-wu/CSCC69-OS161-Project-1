@@ -173,7 +173,7 @@ common_prog(int nargs, char **args)
 	int result;
 	char **args_copy;
 	pid_t val; //the value of the pid
-	bool last; //Is this really boolean in C, I don't remember
+	volatile bool last; //check last character
 	
 #if OPT_SYNCHPROBS
 	kprintf("Warning: this probably won't work with a "
@@ -188,19 +188,19 @@ common_prog(int nargs, char **args)
 		return ENOMEM;
 	}
 
-	/* demke: and now call thread_fork with the copy */
-	
-	result = thread_fork(args_copy[0] /* thread name */,
-			cmd_progthread /* thread function */,
-			args_copy /* thread arg */, nargs /* thread arg */,
-			&val);
-			
 	//check if the last character or argument is "&" meaning
 	// it has already been attached.
 	if (*args_copy[nargs - 1] == '&'){ //& is at the end of the address
 		last = true;
 		nargs--; //remove it to process results
 	}
+	
+	result = thread_fork(args_copy[0] /* thread name */,
+			cmd_progthread /* thread function */,
+			args_copy /* thread arg */, nargs /* thread arg */,
+			&val);
+			
+	
 	
 	if (result) {
 		kprintf("thread_fork failed: %s\n", strerror(result));

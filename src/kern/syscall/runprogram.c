@@ -98,7 +98,7 @@ runprogram(char *progname, unsigned int argc, char **argv)
 	
 	//Create padding
 	userptr_t pass_args[argc]; //size of the array
-	int length = 0; //initial length
+	int length; //initial length
 	
 	for (unsigned int i =0; i < argc; i++){
 		length = strlen(argv[i]); //length of current argument
@@ -120,11 +120,11 @@ runprogram(char *progname, unsigned int argc, char **argv)
 	pass_args[argc] = NULL:
 	
 	//adjust pointer to copy out with proper normalization on address
-	stackptr -= sizeof(userptr_t) * (argc + 1);
+	stackptr -= (argc + 1) * sizeof(userptr_t);
 	stackptr -= stackptr % 8;
 	
 	//copyout the stack
-	copyout(pass_args, (userptr_t) stackptr, (argc * sizeof(userptr_t)));
+	copyout(pass_args, (userptr_t) stackptr, argc * sizeof(userptr_t));
 	/* Warp to user mode. */
 	enter_new_process(argc, (userptr_t) stackptr,
 			  stackptr, entrypoint);
