@@ -835,6 +835,7 @@ void
 thread_exit(int exitcode)
 {
 	struct thread *cur;
+	cur = curthread;
 	
 	//initialize dodetach
 	bool dodetach;
@@ -847,8 +848,6 @@ thread_exit(int exitcode)
 	}
 	//call pid_exit
 	pid_exit(exitcode, dodetach);
-
-	cur = curthread;
 
 	/* VFS fields */
 	if (cur->t_cwd) {
