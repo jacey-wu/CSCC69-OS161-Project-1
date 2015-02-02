@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/svn/cscc69w15/group22/a1/!svn/ver/1/build/install/sbin
+END
+poweroff
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/cscc69w15/group22/a1/!svn/ver/1/build/install/sbin/poweroff
+END
+halt
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/cscc69w15/group22/a1/!svn/ver/1/build/install/sbin/halt
+END
+reboot
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/cscc69w15/group22/a1/!svn/ver/1/build/install/sbin/reboot
+END

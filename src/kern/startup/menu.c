@@ -141,7 +141,7 @@ cmd_progthread(void *ptr, unsigned long nargs)
 	strcpy(progname, args[0]);
 	strcpy(progname2,args[0]); /* demke: make extra copy for runprogram */
 
-	result = runprogram(progname2, nargs, args);
+	result = runprogram(progname2, args, nargs);
 	free_args(nargs, args);
 	
 	if (result) {
