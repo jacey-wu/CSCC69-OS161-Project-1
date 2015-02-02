@@ -68,8 +68,11 @@ void pid_exit(int status, bool dodetach);
  * Return the exit status of the thread associated with targetpid as
  * soon as it is available.
  */
+ 
 int pid_join(pid_t targetpid, int *status, int flags);
 
+
+ //Monitoring Tools
 int pid_set_flag(pid_t pid, int sig);
 
 int pid_get_flag(pid_t pid);

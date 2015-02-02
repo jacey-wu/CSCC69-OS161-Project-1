@@ -384,9 +384,12 @@ pid_exit(int status, bool dodetach)
 	my_pi->pi_exitstatus = status;
 	my_pi->pi_exited = true;
 	
+	//Let other threads know about the lock
+	cv_broadcast(my_pi->pi_cv, pidlock);
+	
 	//Iterate through all PIDs
 	for(int i = PID_MIN; i <= PID_MAX; i++){
-		struct pidinfo *child = pi_get((pid_t)index); //stats of current child
+		struct pidinfo *child = pi_get((pid_t)i); //stats of current child
 		//if child id matches parent and not empty
 		if ((child->pi_ppid == my_pi->pi_pid) && (child != NULL)){
 			if (dodetach){ // kind of like EINVAL argument
@@ -448,7 +451,7 @@ pid_join(pid_t targetpid, int *status, int flags)
 		lock_release(pidlock);
 		return -EDEADLK;
 	}
-	
+	// forces the flag instead of being blocked
 	if (flags == WNOHANG){
 		lock_release(pidlock);
 		return 0;
@@ -461,7 +464,7 @@ pid_join(pid_t targetpid, int *status, int flags)
 	
 	//retrieve the exit status when the joined thread exits. 
 	int retrieve = newThread->pi_exitstatus;
-	if (newThread->pi_exited == true && status != NULL){
+	if ((newThread->pi_exited == true) && (status != NULL)){
 		*status = retrieve; //Update the status
 	}
 	
@@ -469,7 +472,7 @@ pid_join(pid_t targetpid, int *status, int flags)
 	return targetpid;
 }
 
-//additional monitoring tools
+//additional monitoring tools for pid
 
 //set the flag for the pid.
 int
@@ -519,6 +522,7 @@ pid_get_flag(pid_t pid)
 	return flag;
 }
 
+//if the value of pid is valid
 int
 pid_valid(pid_t pid)
 {
@@ -527,6 +531,7 @@ pid_valid(pid_t pid)
 	return 0;
 }
 
+//If id is parent
 bool
 pid_isparent(pid_t pid)
 {
