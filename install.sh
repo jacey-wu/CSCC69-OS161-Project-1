@@ -6,6 +6,8 @@ cd ..
 
 export PATH=$PATH:/usr/local/cms/toolchain/bin
 
+ctags -R --extra=+f --links=no ./src/
+
 cd src/kern/conf
 ./config ASST1
 
@@ -14,7 +16,7 @@ bmake depend
 bmake
 
 bmake install
-if [ $? -ne 0]; then
+if [ $? -ne 0 ]; then
 	bmake clean
 	exit 1
 fi
@@ -24,7 +26,7 @@ bmake
 bmake install
 
 bmake install
-if [ $? -ne 0]; then
+if [ $? -ne 0 ]; then
 	bmake clean
 	exit 1
 fi
