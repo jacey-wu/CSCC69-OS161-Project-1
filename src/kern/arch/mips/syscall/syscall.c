@@ -109,37 +109,46 @@ syscall(struct trapframe *tf)
 				     (userptr_t)tf->tf_a1);
 		    break;
 
-            /* ASST1: These implementations of read and write only work for
-             * console I/O (stdin, stdout and stderr file descriptors)
-             */
-            case SYS_read:
-                err = sys_read(tf->tf_a0, (userptr_t)tf->tf_a1, tf->tf_a2,
-                               &retval);
-                break;
+        /* ASST1: These implementations of read and write only work for
+         * console I/O (stdin, stdout and stderr file descriptors)
+         */
+        case SYS_read:
+            err = sys_read(tf->tf_a0, (userptr_t)tf->tf_a1, tf->tf_a2,
+                           &retval);
+            break;
 
-            case SYS_write:
-                err = sys_write(tf->tf_a0, (userptr_t)tf->tf_a1, tf->tf_a2,
-                                &retval);
-                break;
+        case SYS_write:
+            err = sys_write(tf->tf_a0, (userptr_t)tf->tf_a1, tf->tf_a2,
+                            &retval);
+            break;
 
 	    /* process calls */
-	
 	    case SYS__exit:
 		    DEBUG(DB_SYSCALL, "thread %d exiting with code %d\n",
 			  curthread->t_pid, tf->tf_a0);
 		    thread_exit(_MKWAIT_EXIT(tf->tf_a0));
 		    panic("Returning from exit\n");
 
-            case SYS_fork:
+		case SYS_fork:
 		    err = sys_fork(tf, &retval);
 		    break;
 
-            /* ASST1 - You need to fill in the code for each of these cases */
-            case SYS_getpid:
+        /* ASST1 - You need to fill in the code for each of these cases */
+        case SYS_getpid:
+        	kprintf("In SYS_getpid");
+        	err = sys_getpid(&retval);
+        	break;
 
-            case SYS_waitpid:
+        case SYS_waitpid:
+        	kprintf("in SYS_waitpid");
+        	err = sys_waitpid((pid_t)tf->tf_a0, (int *)tf->tf_a1, 
+        					  (int)tf->tf_a3, &retval);
+        	break;
 
-            case SYS_kill:
+        case SYS_kill:
+        	kprintf("SYS_kill");
+        	err = sys_kill((pid_t)tf->tf_a0, (int)tf->tf_a1);
+        	break;
 
 
 	    /* Even more system calls will go here */

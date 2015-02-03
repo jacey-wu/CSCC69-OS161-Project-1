@@ -49,20 +49,36 @@ sys_fork(struct trapframe *tf, pid_t *retval)
 
 /*
  * sys_getpid
- * Placeholder to remind you to implement this.
+ * Returns the process id of the current process.
  */
-
+void
+sys_getpid(pid_t *retval)
+{
+	*retval = curthread->t_pid;
+}
 
 /*
  * sys_waitpid
  * Placeholder comment to remind you to implement this.
  */
-
+int
+sys_waitpid(pid_t pid, int *status, int opt, pid_t *retval)
+{
+	// If the pid argument named a non-existent process
+	if (! pid_valid(pid)) {
+		
+	}
+}
 
 /*
  * sys_kill
  * Placeholder comment to remind you to implement this.
  */
+int
+sys_kill(pid_t pid, int sig) 
+{
+
+}
 
 
 
