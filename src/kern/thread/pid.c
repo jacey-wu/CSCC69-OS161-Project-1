@@ -522,7 +522,10 @@ pid_get_flag(pid_t pid)
 	return flag;
 }
 
-//if the value of pid is valid
+/*
+ * pid_valid
+ * Return 0 if given pid is valid, otherwise return errno EINVAL.
+ */
 int
 pid_valid(pid_t pid)
 {
@@ -531,24 +534,35 @@ pid_valid(pid_t pid)
 	return 0;
 }
 
-//If id is parent
-bool
-pid_isparent(pid_t pid)
+
+/*
+ * pid_is_parent_chid:
+ *
+ * Return 1 if pid_p is the parent of pid_c, otherwise return 0. On error, 
+ * return a negative errno.
+ */
+int
+pid_is_parent_child(pid_t pid_p, pid_t pid_c)
 {
-	lock_acquire(pidlock);
-	if (pid == INVALID_PID || pid < PID_MIN || pid > PID_MAX){
+
+	// Validate parent pid, and child pid
+	if ( (pid_valid(pid_p) != 0) || (pid_valid(pid_c) != 0)  ) {
+		return EINVAL;
+	}
+
+	// Extract the pidinfo of the parent pid and the child pid
+	struct pidinfo* pi_p = pi_get(pid_p);
+	struct pidinfo* pi_c = pi_get(pid_c);
+	if ( ! pi_p or ! pi_c) {
 		lock_release(pidlock);
-    	return EINVAL;
-    }
+		return ESRCH;
+	}
 
-    struct pidinfo* pi = pi_get(curthread->t_pid);
-    if (pi == NULL){
-    	lock_release(pidlock);
-        return ESRCH;
-    }
-
-	lock_release(pidlock);
-	return (pi->pi_ppid == pid);
+	// Release lock and return comparision result
+	if (pi_c->pi_ppid == pid_p) {
+		return 1
+	}
+	else {
+		return 0;
+	}
 }
-
-

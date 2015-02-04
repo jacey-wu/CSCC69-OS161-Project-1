@@ -5,6 +5,7 @@
 
 #include <types.h>
 #include <kern/errno.h>
+#include <kern/wait.h>
 #include <lib.h>
 #include <thread.h>
 #include <current.h>
@@ -65,9 +66,34 @@ int
 sys_waitpid(pid_t pid, int *status, int opt, pid_t *retval)
 {
 	// If the pid argument named a non-existent process
-	if (! pid_valid(pid)) {
-		
+	if (pid_valid(pid) != 0) {
+		return ESRCH;
 	}
+
+	// If the status argument was an invalid pointer
+	if (! status) {
+		return EFAULT;
+	}
+
+	// If the options argument requested invalid or unsupported options
+	if (opt != 0 && opt != WNOHANG) {
+		return EINVAL;
+	}
+
+	// If given pid is a child of current thread
+	if (! pid_is_parent_child(curthread->t_pid, pid)){
+		return ECHILD;
+	}
+
+	*retval = pid_join(pid, status, opt);
+
+	// On error, error code is returned
+	if ( *retval < 0){
+		return -(*retval); // return positive errno
+	}
+	
+	// On success
+	return 0;
 }
 
 /*
