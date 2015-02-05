@@ -148,6 +148,10 @@ mips_trap(struct trapframe *tf)
 						+ STACK_SIZE));
 	}
 
+	/*
+	 * Start here!!!
+	 */
+
 	/* Interrupt? Call the interrupt handler and return. */
 	if (code == EX_IRQ) {
 		int old_in;
