@@ -54,12 +54,12 @@
 struct pidinfo {
 	pid_t pi_pid;			// process id of this thread
 	pid_t pi_ppid;			// process id of parent thread
-	volatile bool pi_exited;	// true if thread has exited
+	volatile bool pi_exited;// true if thread has exited
 	int pi_exitstatus;		// status (only valid if exited)
 	struct cv *pi_cv;		// use to wait for thread exit
+	struct cv *pi_cv_stop;	// use to wait for SIGCONT if SIGSTOP is set
 	int pi_flag;			// flag the pid
 };
-
 
 /*
  * Global pid and exit data.
@@ -94,6 +94,12 @@ pidinfo_create(pid_t pid, pid_t ppid)
 
 	pi->pi_cv = cv_create("pidinfo cv");
 	if (pi->pi_cv == NULL) {
+		kfree(pi);
+		return NULL;
+	}
+
+	pi->pi_cv_stop = cv_create("pidinfo cv for stop");
+	if (pi->pi_cv_stop == NULL) {
 		kfree(pi);
 		return NULL;
 	}

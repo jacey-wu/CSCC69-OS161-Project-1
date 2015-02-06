@@ -39,6 +39,7 @@
 #include <vm.h>
 #include <mainbus.h>
 #include <syscall.h>
+#include <sync.h>
 
 
 /* in exception.S */
@@ -128,6 +129,7 @@ mips_trap(struct trapframe *tf)
 	uint32_t code;
 	bool isutlb, iskern;
 	int spl, pid_flag;
+	struct lock *cv_lock;
 
 	/* The trap frame is supposed to be 37 registers long. */
 	KASSERT(sizeof(struct trapframe)==(37*4));
@@ -151,6 +153,9 @@ mips_trap(struct trapframe *tf)
 	/*
 	 * Check thread flag before returning to userspace
 	 */
+	cv_lock = lock_create("lock for signal");
+	KASSERT(cv_lock != NULL);
+
 	pid_flag = pid_get_flag(curthread->t_pid);
 	if (pid_flag) {
 		switch (pid_flag) {
@@ -165,10 +170,11 @@ mips_trap(struct trapframe *tf)
 
 			// Signal to stop and cont
 			case SIGSTOP:
-				// Do something
+				cv_wait(curthread->pi_cv_stop, cv_lock);
+				lock_release(cv_lock);
 				break;
 			case SIGCONT:
-				// Do something
+				cv_broadcast(curthread->pi_cv_stop, cv_lock);
 				break;
 
 			// Signal to be ignored, do nothing
