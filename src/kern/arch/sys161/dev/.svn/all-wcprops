@@ -1,11 +1,11 @@
 K 25
 svn:wc:ra_dav:version-url
-V 60
-/svn/cscc69s14/group5/a1/!svn/ver/1/src/kern/arch/sys161/dev
+V 62
+/svn/cscc69w15/group22/a1/!svn/ver/10/src/kern/arch/sys161/dev
 END
 lamebus_machdep.c
 K 25
 svn:wc:ra_dav:version-url
-V 78
-/svn/cscc69s14/group5/a1/!svn/ver/1/src/kern/arch/sys161/dev/lamebus_machdep.c
+V 80
+/svn/cscc69w15/group22/a1/!svn/ver/10/src/kern/arch/sys161/dev/lamebus_machdep.c
 END

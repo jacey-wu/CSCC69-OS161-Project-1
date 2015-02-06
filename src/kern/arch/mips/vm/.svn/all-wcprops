@@ -1,23 +1,23 @@
 K 25
 svn:wc:ra_dav:version-url
-V 57
-/svn/cscc69s14/group5/a1/!svn/ver/1/src/kern/arch/mips/vm
+V 59
+/svn/cscc69w15/group22/a1/!svn/ver/10/src/kern/arch/mips/vm
 END
 tlb-mips1.S
 K 25
 svn:wc:ra_dav:version-url
-V 69
-/svn/cscc69s14/group5/a1/!svn/ver/1/src/kern/arch/mips/vm/tlb-mips1.S
+V 71
+/svn/cscc69w15/group22/a1/!svn/ver/10/src/kern/arch/mips/vm/tlb-mips1.S
 END
 dumbvm.c
 K 25
 svn:wc:ra_dav:version-url
-V 66
-/svn/cscc69s14/group5/a1/!svn/ver/1/src/kern/arch/mips/vm/dumbvm.c
+V 68
+/svn/cscc69w15/group22/a1/!svn/ver/10/src/kern/arch/mips/vm/dumbvm.c
 END
 ram.c
 K 25
 svn:wc:ra_dav:version-url
-V 63
-/svn/cscc69s14/group5/a1/!svn/ver/1/src/kern/arch/mips/vm/ram.c
+V 65
+/svn/cscc69w15/group22/a1/!svn/ver/10/src/kern/arch/mips/vm/ram.c
 END

@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/cscc69w15/group22/a1/!svn/ver/10/src/user/testbin/triplemat
+END
+.depend
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svn/cscc69w15/group22/a1/!svn/ver/10/src/user/testbin/triplemat/.depend
+END
+Makefile
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/svn/cscc69w15/group22/a1/!svn/ver/10/src/user/testbin/triplemat/Makefile
+END
+triple.c
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/svn/cscc69w15/group22/a1/!svn/ver/10/src/user/testbin/triplemat/triple.c
+END
+triplemat.c
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svn/cscc69w15/group22/a1/!svn/ver/10/src/user/testbin/triplemat/triplemat.c
+END
+triple.h
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/svn/cscc69w15/group22/a1/!svn/ver/10/src/user/testbin/triplemat/triple.h
+END

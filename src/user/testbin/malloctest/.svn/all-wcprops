@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/cscc69w15/group22/a1/!svn/ver/10/src/user/testbin/malloctest
+END
+malloctest.c
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svn/cscc69w15/group22/a1/!svn/ver/10/src/user/testbin/malloctest/malloctest.c
+END
+.depend
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/svn/cscc69w15/group22/a1/!svn/ver/10/src/user/testbin/malloctest/.depend
+END
+Makefile
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/svn/cscc69w15/group22/a1/!svn/ver/10/src/user/testbin/malloctest/Makefile
+END

@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/cscc69w15/group22/a1/!svn/ver/10/src/user/bin/rmdir
+END
+.depend
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/cscc69w15/group22/a1/!svn/ver/10/src/user/bin/rmdir/.depend
+END
+Makefile
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/cscc69w15/group22/a1/!svn/ver/10/src/user/bin/rmdir/Makefile
+END
+rmdir.c
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/cscc69w15/group22/a1/!svn/ver/10/src/user/bin/rmdir/rmdir.c
+END

@@ -1,17 +1,17 @@
 K 25
 svn:wc:ra_dav:version-url
-V 59
-/svn/cscc69s14/group5/a1/!svn/ver/1/src/kern/arch/mips/conf
+V 61
+/svn/cscc69w15/group22/a1/!svn/ver/10/src/kern/arch/mips/conf
 END
 ldscript
 K 25
 svn:wc:ra_dav:version-url
-V 68
-/svn/cscc69s14/group5/a1/!svn/ver/1/src/kern/arch/mips/conf/ldscript
+V 70
+/svn/cscc69w15/group22/a1/!svn/ver/10/src/kern/arch/mips/conf/ldscript
 END
 conf.arch
 K 25
 svn:wc:ra_dav:version-url
-V 69
-/svn/cscc69s14/group5/a1/!svn/ver/1/src/kern/arch/mips/conf/conf.arch
+V 71
+/svn/cscc69w15/group22/a1/!svn/ver/10/src/kern/arch/mips/conf/conf.arch
 END
