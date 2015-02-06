@@ -474,7 +474,12 @@ pid_join(pid_t targetpid, int *status, int flags)
 
 //additional monitoring tools for pid
 
-//set the flag for the pid.
+//set the flag for the pid. 
+/*
+ * pid_set_flag:
+ * Set signal sig to process flag. On success, 0 is returned. On error, 
+ * return errno.
+ */
 int
 pid_set_flag(pid_t pid, int sig)
 {
@@ -487,7 +492,7 @@ pid_set_flag(pid_t pid, int sig)
 		return EINVAL;
 	}
 	
-	//create the pid
+	// Extract info of the process
 	struct pidinfo* pi = pi_get(pid);
 	if (pi == NULL){
 		lock_release(pidlock);
@@ -501,19 +506,23 @@ pid_set_flag(pid_t pid, int sig)
 	return 0;
 }
 
-//get the flag
+/*
+ * pid_get_flag: Return signal flag of the process specified by pid. On error,
+ * a negative errno is returned.
+ */
 int
 pid_get_flag(pid_t pid)
 {
-	
+	// Validate pid 
 	if (pid_valid(pid) != 0)
-		return EINVAL;
+		return -ESRCH;
 
+	// Extract process info
 	lock_acquire(pidlock);
 	struct pidinfo* pi = pi_get(pid);
 	if (pi == NULL){
 		lock_release(pidlock);
-		return ESRCH;
+		return -ESRCH;
 	}
 
 	int flag = pi->pi_flag;
@@ -523,23 +532,28 @@ pid_get_flag(pid_t pid)
 }
 
 /*
- * pid_valid
- * Return 0 if given pid is valid, otherwise return errno EINVAL.
+ * pid_valid: Return 0 if given pid is valid, otherwise return errno.
  */
 int
 pid_valid(pid_t pid)
 {
 	if (pid == INVALID_PID || pid < PID_MIN || pid > PID_MAX)
     	return EINVAL;
+
+    lock_acquire(pidlock);
+    struct pidinfo* pi = pi_get(pid);
+    lock_release(pidlock);
+
+    if (! pi) {
+    	return ESRCH;
+    }
 	return 0;
 }
 
 
 /*
- * pid_is_parent_chid:
- *
- * Return 1 if pid_p is the parent of pid_c, otherwise return 0. On error, 
- * return a negative errno.
+ * pid_is_parent_chid: Return 1 if pid_p is the parent of pid_c, otherwise 
+ * return 0. On error, return a negative errno.
  */
 int
 pid_is_parent_child(pid_t pid_p, pid_t pid_c)

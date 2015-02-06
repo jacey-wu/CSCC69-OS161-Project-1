@@ -127,7 +127,7 @@ mips_trap(struct trapframe *tf)
 {
 	uint32_t code;
 	bool isutlb, iskern;
-	int spl;
+	int spl, pid_flag;
 
 	/* The trap frame is supposed to be 37 registers long. */
 	KASSERT(sizeof(struct trapframe)==(37*4));
@@ -149,8 +149,44 @@ mips_trap(struct trapframe *tf)
 	}
 
 	/*
-	 * Start here!!!
+	 * Check thread flag before returning to userspace
 	 */
+	pid_flag = pid_get_flag(curthread->t_pid);
+	if (pid_flag) {
+		switch (pid_flag) {
+
+			// Signal to terminate the the process
+			case SIGHUP:
+			case SIGINT:
+			case SIGKILL:
+			case SIGTERM:
+				thread_exit(0);
+				break;
+
+			// Signal to stop and cont
+			case SIGSTOP:
+				// Do something
+				break;
+			case SIGCONT:
+				// Do something
+				break;
+
+			// Signal to be ignored, do nothing
+			case SIGWINCH:
+			case SIGINFO:
+				break;
+
+			// Should never reach here since errs are handled when SYS_kill 
+			// is received
+			default:
+				KASSERT(pid_flag > 0);
+				kprintf("Signal flag %d cannot be handled in kernel mode\n",
+					pid_flag);
+				KASSERT(0 == 1);
+				break;
+
+		}
+	}
 
 	/* Interrupt? Call the interrupt handler and return. */
 	if (code == EX_IRQ) {

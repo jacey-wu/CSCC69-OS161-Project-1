@@ -98,12 +98,49 @@ sys_waitpid(pid_t pid, int *status, int opt, pid_t *retval)
 
 /*
  * sys_kill
- * Placeholder comment to remind you to implement this.
+ * Send signal sig to process pid. Validate signal and its implementation. On
+ * success, 0 is returned. On error, return errno.
  */
 int
 sys_kill(pid_t pid, int sig) 
 {
+	// Validate signal sig
+	if (sig < 0 || sig > _NSIG) {
+		return EINVAL;
+	}
 
+	// Check the implementation of sig
+	switch (sig) {
+
+			/* Signals with implementations */
+
+			// Signal to terminate the the process
+			case SIGHUP:
+			case SIGINT:
+			case SIGKILL:
+			case SIGTERM:
+
+			// Signal to stop and cont
+			case SIGSTOP:
+			case SIGCONT:
+
+			// Signal to be ignored, do nothing
+			case SIGWINCH:
+			case SIGINFO:
+				break;
+
+			/* Signals without implemenations */ 
+			default:
+				return EUNIMP;
+				break; // Should have never been reached.
+	}
+
+	int err = pid_set_flag(pid, sig);
+
+	if (err) {
+		return err;
+	}
+	return 0;
 }
 
 

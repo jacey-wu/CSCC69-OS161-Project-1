@@ -85,7 +85,7 @@
 #define SIGUSR1		30	/* Application-defined */
 #define SIGUSR2		31	/* Application-defined */
 #define SIGPWR		32	/* Power failure */
-#define _NSIG		32
+#define _NSIG		32	/* Largest signal implemented */
 
 
 /* Type for a set of signals; used by e.g. sigprocmask(). */
