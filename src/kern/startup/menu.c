@@ -171,7 +171,7 @@ int
 common_prog(int nargs, char **args)
 {
 	int result;
-	char **args_copy;
+	char **copi;
 	pid_t val; //the value of the pid
 	volatile bool last; //check last character
 	
@@ -183,21 +183,21 @@ common_prog(int nargs, char **args)
 	/* demke: Make a copy of arguments to pass to new thread,
 	 * so that we aren't depending on parent's stack!
 	 */
-	args_copy = copy_args(nargs, args);
-	if (!args_copy) {
+	copi = copy_args(nargs, args);
+	if (!copi) {
 		return ENOMEM;
 	}
 
 	//check if the last character or argument is "&" meaning
-	// it has already been attached.
-	if (*args_copy[nargs - 1] == '&'){ //& is at the end of the address
+	// it can be detatched.
+	if (*copi[nargs-1] == '&'){ //& is at the end of the address
 		last = true;
 		nargs--; //remove it to process results
 	}
 	
-	result = thread_fork(args_copy[0] /* thread name */,
-			cmd_progthread /* thread function */,
-			args_copy /* thread arg */, nargs /* thread arg */,
+	result = thread_fork(copi[0],
+			cmd_progthread,
+			copi, nargs,
 			&val);
 			
 	
@@ -205,15 +205,15 @@ common_prog(int nargs, char **args)
 	if (result) {
 		kprintf("thread_fork failed: %s\n", strerror(result));
 		/* demke: need to free copy of args if fork fails */
-		free_args(nargs, args_copy);
+		free_args(nargs, copi);
 		return result;
 	}
 	
-	if (last != true) {
-		pid_join(value, NULL, 0); //initial join
+	if (last == true) {
+		pid_detach(val); //detach it
 	}
 	else{
-		pid_detach(value); //detach it
+		pid_join(val, NULL, 0); //initial join
 	}
 
 	return 0;
