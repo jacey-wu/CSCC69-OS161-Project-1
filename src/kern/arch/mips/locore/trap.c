@@ -39,6 +39,7 @@
 #include <vm.h>
 #include <mainbus.h>
 #include <syscall.h>
+#include <sync.h>
 
 
 /* in exception.S */
@@ -127,7 +128,8 @@ mips_trap(struct trapframe *tf)
 {
 	uint32_t code;
 	bool isutlb, iskern;
-	int spl;
+	int spl, pid_flag;
+	struct lock *cv_lock;
 
 	/* The trap frame is supposed to be 37 registers long. */
 	KASSERT(sizeof(struct trapframe)==(37*4));
@@ -146,6 +148,48 @@ mips_trap(struct trapframe *tf)
 		KASSERT((vaddr_t)tf > (vaddr_t)curthread->t_stack);
 		KASSERT((vaddr_t)tf < (vaddr_t)(curthread->t_stack
 						+ STACK_SIZE));
+	}
+
+	/*
+	 * Check thread flag before returning to userspace
+	 */
+	cv_lock = lock_create("lock for signal");
+	KASSERT(cv_lock != NULL);
+
+	pid_flag = pid_get_flag(curthread->t_pid);
+	if (pid_flag) {
+		switch (pid_flag) {
+			// Signal to terminate the the process
+			case SIGHUP:
+			case SIGINT:
+			case SIGKILL:
+			case SIGTERM:
+				thread_exit(0);
+				break;
+
+			// Signal to stop and cont
+			case SIGSTOP:
+				cv_wait(curthread->pi_cv_stop, cv_lock);
+				lock_release(cv_lock);
+				break;
+			case SIGCONT:
+				cv_broadcast(curthread->pi_cv_stop, cv_lock);
+				break;
+
+			// Signal to be ignored, do nothing
+			case SIGWINCH:
+			case SIGINFO:
+				break;
+
+			// Should never reach here since errs are handled when SYS_kill
+			// is received
+			default:
+				KASSERT(pid_flag > 0);
+				kprintf("Signal flag %d cannot be handled in kernel mode\n",
+				pid_flag);
+				KASSERT(0 == 1);
+			break;
+		}
 	}
 
 	/* Interrupt? Call the interrupt handler and return. */

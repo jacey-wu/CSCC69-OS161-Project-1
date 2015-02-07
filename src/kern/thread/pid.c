@@ -54,9 +54,10 @@
 struct pidinfo {
 	pid_t pi_pid;			// process id of this thread
 	pid_t pi_ppid;			// process id of parent thread
-	volatile bool pi_exited;	// true if thread has exited
+	volatile bool pi_exited;// true if thread has exited
 	int pi_exitstatus;		// status (only valid if exited)
 	struct cv *pi_cv;		// use to wait for thread exit
+	struct cv *pi_cv_stop;	// use to wait for SIGCONT if SIGSTOP is set
 	int pi_flag;			// flag the pid
 };
 
@@ -94,6 +95,12 @@ pidinfo_create(pid_t pid, pid_t ppid)
 
 	pi->pi_cv = cv_create("pidinfo cv");
 	if (pi->pi_cv == NULL) {
+		kfree(pi);
+		return NULL;
+	}
+	
+	pi->pi_cv_stop = cv_create("pidinfo cv for stop");
+	if (pi->pi_cv_stop == NULL) {
 		kfree(pi);
 		return NULL;
 	}
@@ -474,7 +481,11 @@ pid_join(pid_t targetpid, int *status, int flags)
 
 //additional monitoring tools for pid
 
-//set the flag for the pid.
+/*
+ * pid_set_flag:
+ * Set signal sig to process flag. On success, 0 is returned. On error,
+ * return errno.
+ */
 int
 pid_set_flag(pid_t pid, int sig)
 {
@@ -487,7 +498,7 @@ pid_set_flag(pid_t pid, int sig)
 		return EINVAL;
 	}
 	
-	//create the pid
+	// Extract info of the process
 	struct pidinfo* pi = pi_get(pid);
 	if (pi == NULL){
 		lock_release(pidlock);
@@ -501,54 +512,76 @@ pid_set_flag(pid_t pid, int sig)
 	return 0;
 }
 
-//get the flag
+/*
+ * pid_get_flag: Return signal flag of the process specified by pid. On error,
+ * a negative errno is returned.
+ */
 int
 pid_get_flag(pid_t pid)
 {
-	
+	// Validate pid 	
 	if (pid_valid(pid) != 0)
-		return EINVAL;
+		return -ESRCH;
 
+	// Extract process info
 	lock_acquire(pidlock);
 	struct pidinfo* pi = pi_get(pid);
 	if (pi == NULL){
 		lock_release(pidlock);
-		return ESRCH;
+		return -ESRCH;
 	}
 
 	int flag = pi->pi_flag;
-
 	lock_release(pidlock);
 	return flag;
 }
 
-//if the value of pid is valid
+/*
+ * pid_valid: Return 0 if given pid is valid, otherwise return errno.
+ */
 int
 pid_valid(pid_t pid)
 {
 	if (pid == INVALID_PID || pid < PID_MIN || pid > PID_MAX)
     	return EINVAL;
+ 
+ 	lock_acquire(pidlock);
+	struct pidinfo* pi = pi_get(pid);
+	lock_release(pidlock);
+
+	if (! pi) {
+		return ESRCH;
+	}
 	return 0;
 }
 
-//If id is parent
-bool
-pid_isparent(pid_t pid)
+/*
+ * pid_is_parent_chid:
+ * Return 1 if pid_p is the parent of pid_c, otherwise return 0. On error,
+ * return a negative errno.
+ */
+int
+pid_is_parent_child(pid_t pid_p, pid_t pid_c)
 {
-	lock_acquire(pidlock);
-	if (pid == INVALID_PID || pid < PID_MIN || pid > PID_MAX){
+	// Validate parent pid, and child pid
+	if ( (pid_valid(pid_p) != 0) || (pid_valid(pid_c) != 0) ) {
+		return -EINVAL;
+	}
+
+	// Extract the pidinfo of the parent pid and the child pid
+	struct pidinfo* pi_p = pi_get(pid_p);
+	struct pidinfo* pi_c = pi_get(pid_c);
+	if ( ! pi_p or ! pi_c) {
 		lock_release(pidlock);
-    	return EINVAL;
-    }
-
-    struct pidinfo* pi = pi_get(curthread->t_pid);
-    if (pi == NULL){
-    	lock_release(pidlock);
-        return ESRCH;
-    }
-
-	lock_release(pidlock);
-	return (pi->pi_ppid == pid);
+		return -ESRCH;
+	}
+	
+	// Release lock and return comparision result
+	if (pi_c->pi_ppid == pid_p) {
+		return 1
+	}
+	else {
+		return 0;
+	}
 }
-
 
